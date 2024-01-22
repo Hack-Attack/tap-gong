@@ -12,6 +12,8 @@ class AggregatedActivityStream(GongStream):
     schema = th.PropertiesList(
         th.Property("userEmailAddress", th.StringType),
         th.Property("userId", th.StringType),
+        th.Property("start_date", th.DateTimeType),
+        th.Property("end_date", th.DateTimeType),
         th.Property("userAggregateActivityStats",
                     th.ObjectType(
                         th.Property("callsAsHost", th.NumberType),
@@ -44,6 +46,11 @@ class AggregatedActivityStream(GongStream):
     # extras for retry
     retried = False
     modified_request = False
+
+    def post_process(self, row, context=None):
+        row['start_date'] = self.config['start_date']
+        row['end_date'] = self.config['end_date']
+        return row
 
     def prepare_request_payload(self, context: Optional[dict], next_page_token: Optional[Any]) -> Optional[dict]:
         """Prepare the data payload for the REST API request."""
