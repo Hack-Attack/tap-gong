@@ -40,8 +40,6 @@ class TapGong(Tap):
         th.Property("access_key_secret", th.StringType, required=True),
         th.Property("start_date", th.DateTimeType, required=True),
         th.Property("end_date", th.DateTimeType, required=True),
-        th.Property("stream_maps", th.ObjectType()),
-        th.Property("stream_map_config", th.ObjectType()),
     ).to_dict()
 
     def discover_streams(self) -> List[Stream]:
