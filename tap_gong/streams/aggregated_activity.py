@@ -35,7 +35,7 @@ class AggregatedActivityStream(GongStream):
                     )
     ).to_dict()
     path = "/v2/stats/activity/aggregate"
-    primary_keys = ["userId"]
+    primary_keys = ["userId", "start_date", "end_date"]
     records_jsonpath = "$.usersAggregateActivityStats[*]"
     rest_method = "POST"
     next_page_token_jsonpath = "$.records.cursor"
