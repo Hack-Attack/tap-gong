@@ -104,7 +104,7 @@ class AggregatedActivityStream(GongStream):
         ):
             msg = self.response_error_message(response)
             raise RetriableAPIError(msg, response)
-        elif 400 <= response.status_code < 500:
+        elif 400 <= response.status_code < 500 and response.status_code != 404:
             msg = self.response_error_message(response)
             if response.status_code == 400 and not self.retried:
                 self.retried = True
