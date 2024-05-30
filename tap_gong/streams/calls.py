@@ -1,4 +1,5 @@
-from typing import Any, Dict, Optional, Union, List, Iterable
+from typing import Any, Optional
+
 from singer_sdk import typing as th
 from tap_gong import config_helper as helper
 from tap_gong.client import GongStream
@@ -122,7 +123,7 @@ class CallsStream(GongStream):
                         th.ObjectType(
                             th.Property("name", th.StringType),
                             th.Property("count", th.IntegerType),
-                            th.Property("type", th.StringType)
+                            th.Property("type", th.StringType),
                         )
                     ),
                 ),
@@ -200,10 +201,10 @@ class CallsStream(GongStream):
         row["id"] = row["metaData"]["id"]
         row["started"] = row["metaData"]["started"]
 
-
-        # some name / value pairs are returned where value = 'string' but others are value = 5
-        # this breaks our schema - cast them all to string
-        self.process_recursively(row, 'value', lambda n: str(n))
+        # some name / value pairs are returned where value = 'string'
+        # but others are value = 5 this breaks our schema - cast them
+        # all to string
+        self.process_recursively(row, "value", lambda n: str(n))
         return row
 
     def process_recursively(self, search_dict, field, op):
@@ -218,7 +219,7 @@ class CallsStream(GongStream):
 
             if key == field:
                 fields_found.append(value)
-                search_dict['value'] = op(value)
+                search_dict["value"] = op(value)
 
             elif isinstance(value, dict):
                 results = self.process_recursively(value, field, op)
@@ -238,9 +239,12 @@ class CallsStream(GongStream):
         self, context: Optional[dict], next_page_token: Optional[Any]
     ) -> Optional[dict]:
         """Prepare the data payload for the REST API request."""
-        fromDateTime = helper.get_date_time_string(self.get_starting_timestamp(context), helper.date_time_format_string)
-        toDateTime = helper.get_date_time_string_from_config(self.config, helper.end_date_key,
-                                                             helper.date_time_format_string)
+        fromDateTime = helper.get_date_time_string(
+            self.get_starting_timestamp(context), helper.date_time_format_string
+        )
+        toDateTime = helper.get_date_time_string_from_config(
+            self.config, helper.end_date_key, helper.date_time_format_string
+        )
         request_body = {
             "cursor": next_page_token,
             "filter": {"fromDateTime": fromDateTime, "toDateTime": toDateTime},
