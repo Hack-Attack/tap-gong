@@ -1,11 +1,13 @@
 """REST client handling, including GongStream base class."""
 
+import json
 from pathlib import Path
 from typing import Any, Dict
+
 import requests
-import json
+from singer_sdk.exceptions import FatalAPIError, RetriableAPIError
 from singer_sdk.streams import RESTStream
-from singer_sdk.exceptions import RetriableAPIError, FatalAPIError
+
 from tap_gong.auth import GongAuthenticator
 from tap_gong.utils import log_error
 
@@ -38,27 +40,28 @@ class GongStream(RESTStream):
 
     def response_error_message(self, response: requests.Response) -> str:
         """
-            Method overridden to capture errors correctly based on gong API response.
+        Method overridden to capture errors correctly based on gong API response.
         """
-        # Unauthorized for path|Validate credentials failed|Missing mandatory header "Authorization"
+        # Unauthorized for path|Validate credentials failed|Missing
+        # mandatory header "Authorization"
         if response.status_code == 401:
-            return 'The key or secret provided is incorrect.'
+            return "The key or secret provided is incorrect."
         # No users found corresponding to the provided filters
         if response.status_code == 404:
-            return 'There was no data found for the given date range.'
+            return "There was no data found for the given date range."
 
         errors = None
         try:
-            errors = json.loads(response.content.decode('utf-8')).get("errors", [])
-        except:
+            errors = json.loads(response.content.decode("utf-8")).get("errors", [])
+        except Exception:
             pass
-        
+
         if errors is None or len(errors) == 0:
-            msg = 'Unexpected error'
+            msg = "Unexpected error"
         else:
-            msg = ', '.join(errors)
-        
-        return f'Import failed with following Gong error: {msg}'
+            msg = ", ".join(errors)
+
+        return f"Import failed with following Gong error: {msg}"
 
     def _request(
         self, prepared_request: requests.PreparedRequest, context: dict
@@ -71,8 +74,8 @@ class GongStream(RESTStream):
             return super()._request(prepared_request, context)
         except RetriableAPIError as e:
             if self.tries == self.backoff_max_tries():
-                log_error(e, self.config, self.logger, 'gong.GongApiError')
+                log_error(e, self.config, self.logger, "gong.GongApiError")
             raise
         except FatalAPIError as e:
-            log_error(e, self.config, self.logger, 'gong.GongApiError')
+            log_error(e, self.config, self.logger, "gong.GongApiError")
             raise
